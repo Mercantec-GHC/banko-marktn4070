@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace BankoCheater
 {
@@ -12,42 +14,57 @@ namespace BankoCheater
             string[] names = { "Sophia", "Andrew", "Emma", "Logan" };
 
             // Opret en dictionary til at gemme spillerens plader
-            Dictionary<string, int[,]> playerBoards = new Dictionary<string, int[,]>();
+            Dictionary<string, int[,]> player_boards = new Dictionary<string, int[,]>();
 
             // Generer plader for hver spiller
             foreach (string name in names)
             {
-                playerBoards[name] = GenerateNumbers();
-                Console.WriteLine($"{name}'s board:\n");
-                PrintBoard(playerBoards[name]);
+                player_boards[name] = GenerateNumbers();
+                Console.WriteLine("\n" + name + "'s spilleplade:");
+                PrintBoard(player_boards[name]);
             }
 
             // Spilleren kan indtaste numre for at "markere" dem
             while (true)
             {
-                Console.Write("\nIndtast et tal for at markere (eller skriv 'exit' for at afslutte): ");
+                Console.Write("\n" + "Indtast et tal mellem 1 0g 90 for at krydse det af (eller skriv 'exit' for at afslutte): ");
                 input = Console.ReadLine();
 
-                // Tjek om brugeren vil afslutte programmet
-                if (input.ToLower() == "exit")
+                // Tjek om det indtastede er et tal 
+                if (Regex.IsMatch(input.ToLower(), @"^\d+$")) // Matcher kun heltal
                 {
-                    Console.WriteLine("Programmet afsluttes.");
-                    break; // Afslut løkken og programmet
-                }
+                    int drawn_number = Convert.ToInt32(input);
 
-                if (int.TryParse(input, out int number))
-                {
-                    // Opdater hver plade, hvis nummeret findes
-                    foreach (var player in playerBoards.Keys)
+                    if (drawn_number < 1 || drawn_number > 90)
                     {
-                        MarkNumber(playerBoards[player], number);
-                        Console.WriteLine($"{player}'s board after marking {number}:\n");
-                        PrintBoard(playerBoards[player]);
+                        Console.WriteLine("Det indtastede tal er ikke imellem 1 og 90!");
+                        continue; // Genstart loopet
+                    }
+                    else
+                    {
+                        // Opdater hver plade, hvis nummeret findes
+                        foreach (var player_board in player_boards.Keys)
+                        {
+                            MarkDrawnNumber(player_boards[player_board], drawn_number);
+                            Console.WriteLine("\n" + player_board + "'s spilleplade efter at der er trukket nr. " + drawn_number);
+                            PrintBoard(player_boards[player_board]);
+                        }
                     }
                 }
+                // Tjek om brugeren vil afslutte programmet
+                else if (input.ToLower() == "exit")
+                {
+                    Console.WriteLine("Programmet afsluttes.");
+
+                    Thread.Sleep(3000); // Vent 3 sekunder
+
+                    break; // Afslut løkken og programmet
+                }
+                // Tjek om det indtastede ikke er et tal 
                 else
                 {
-                    Console.WriteLine("Ugyldigt input, prøv venligst igen.");
+                    Console.WriteLine("Det indtastede er ikke et heltal!");
+                    continue; // Genstart loopet
                 }
             }
         }
@@ -161,13 +178,13 @@ namespace BankoCheater
             }
         }
 
-        static void MarkNumber(int[,] board, int number)
+        static void MarkDrawnNumber(int[,] board, int drawn_number)
         {
             for (int i = 0; i < 3; i++)
             {
                 for (int j = 0; j < 9; j++)
                 {
-                    if (board[i, j] == number)
+                    if (board[i, j] == drawn_number)
                     {
                         board[i, j] = -2; // Erstat tallet med -1 (som repræsenterer "X")
                     }
