@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
+using System.Numerics;
+using System.Threading;
 
 namespace BankoCheater
 {
@@ -10,183 +10,283 @@ namespace BankoCheater
         static void Main()
         {
             Console.Clear();
-            string input;
-            string[] names = { "Sophia", "Andrew", "Emma", "Logan" };
 
-            // Opret en dictionary til at gemme spillerens plader
+            // Faste navne og plader til spillere
+            string[] names = { "LukasB", "Mikkel", "Jonas", "Mathias", "Bente", "Jacob", "Bob", "Peter", "Ole", "Margrethe", "Ella", "Freja", "William", "Karl", "Frida", "Luna", "Emil", "Oscar", "Ida", "Oliver" };
             Dictionary<string, int[,]> player_boards = new Dictionary<string, int[,]>();
 
-            // Generer plader for hver spiller
+            int count_names = 0;
+
             foreach (string name in names)
             {
-                player_boards[name] = GenerateNumbers();
-                Console.WriteLine("\n" + name + "'s spilleplade:");
-                PrintBoard(player_boards[name]);
+                count_names++;
+                // Genererer boardet for den nuværende spiller
+                int[,] board = Generate_board(name);
+                player_boards[name] = board;
+
+                Console.WriteLine($"\n{count_names} - {name}'s spilleplade:");
+                Print_board(board);
             }
 
-            // Spilleren kan indtaste numre for at "markere" dem
             while (true)
             {
-                Console.Write("\n" + "Indtast et tal mellem 1 0g 90 for at krydse det af (eller skriv 'exit' for at afslutte): ");
-                input = Console.ReadLine();
+                Console.Write("\nIndtast et tal mellem 1 og 90 for at krydse det af (eller skriv 'exit' for at afslutte): ");
+                string board_input = Console.ReadLine();
 
-                // Tjek om det indtastede er et tal 
-                if (Regex.IsMatch(input.ToLower(), @"^\d+$")) // Matcher kun heltal
-                {
-                    int drawn_number = Convert.ToInt32(input);
-
-                    if (drawn_number < 1 || drawn_number > 90)
-                    {
-                        Console.WriteLine("Det indtastede tal er ikke imellem 1 og 90!");
-                        continue; // Genstart loopet
-                    }
-                    else
-                    {
-                        // Opdater hver plade, hvis nummeret findes
-                        foreach (var player_board in player_boards.Keys)
-                        {
-                            MarkDrawnNumber(player_boards[player_board], drawn_number);
-                            Console.WriteLine("\n" + player_board + "'s spilleplade efter at der er trukket nr. " + drawn_number);
-                            PrintBoard(player_boards[player_board]);
-                        }
-                    }
-                }
-                // Tjek om brugeren vil afslutte programmet
-                else if (input.ToLower() == "exit")
+                if (board_input.ToLower() == "exit")
                 {
                     Console.WriteLine("Programmet afsluttes.");
-
-                    Thread.Sleep(3000); // Vent 3 sekunder
-
-                    break; // Afslut løkken og programmet
+                    Thread.Sleep(3000);
+                    break;
                 }
-                // Tjek om det indtastede ikke er et tal 
+                else if (int.TryParse(board_input, out int drawn_number) && drawn_number >= 1 && drawn_number <= 90)
+                {
+                    count_names = 0;
+
+                    foreach (var player in player_boards.Keys)
+                    {
+                        count_names++;
+                        Mark_drawn_number(player_boards[player], drawn_number);
+                        Console.WriteLine($"\n{count_names} - {player}'s spilleplade efter at der er trukket nr. {drawn_number}:");
+                        Print_board(player_boards[player]);
+                    }
+                    Console.WriteLine("\nSpillere med en række");
+
+                    bool found_row_marked = false; // Flag til at holde styr på, om vi har fundet nogen
+                    int player_count = 1; // Tæller for spillerens nummer
+
+                    foreach (var player in player_boards.Keys)
+                    {
+                        // Tjek hvor mange rækker spilleren har fyldt
+                        int marked_rows = Count_marked_rows(player_boards[player]);
+
+                        if (marked_rows == 1)
+                        {
+                            found_row_marked = true; // Sæt flag til true, hvis vi finder en spiller med en fyldt række
+                            Console.WriteLine($"Spiller nr. {player_count} ({player}) har fyldt én række!");
+                        }
+                        else if (marked_rows == 2)
+                        {
+                            found_row_marked = true; // Sæt flag til true, hvis vi finder en spiller med to fyldte rækker
+                            Console.WriteLine($"Spiller nr. {player_count} ({player}) har fyldt to rækker!");
+                        }
+                        else if (marked_rows >= 3)
+                        {
+                            found_row_marked = true; // Sæt flag til true, hvis vi finder en spiller med tre fyldte rækker
+                            Console.WriteLine($"Spiller nr. {player_count} ({player}) har fuld plade!");
+                        }
+                        player_count++; // Øg tælleren for næste spiller
+                    }
+
+                    if (!found_row_marked)
+                    {
+                        Console.WriteLine("Ingen spillere har fyldt nogen rækker endnu.");
+                    }
+                }
                 else
                 {
-                    Console.WriteLine("Det indtastede er ikke et heltal!");
-                    continue; // Genstart loopet
+                    Console.WriteLine("Det indtastede er ikke et gyldigt heltal!");
                 }
             }
         }
 
-        static int[,] GenerateNumbers()
+        static int Count_marked_rows(int[,] board)
         {
-            Random randNum = new Random();
-            int[,] numbers = new int[3, 9]; // 3 rækker og 9 kolonner
-
-            for (int i = 0; i < 9; i++)
+            int marked_row_count = 0; // Tæller for fyldte rækker
+            for (int row = 0; row < board.GetLength(0); row++)
             {
-                // Bestem interval for hver kolonne
-                int Min = 1 + i * 10; // Min for hver kolonne
-                int Max = Min + 9;    // Max for hver kolonne
+                bool is_row_marked = true;
 
-                List<int> columnNumbers = new List<int>();
-
-                while (columnNumbers.Count < 3) // Sørg for at generere 3 unikke numre
+                for (int col = 0; col < board.GetLength(1); col++)
                 {
-                    int number = randNum.Next(Min, Max + 1); // Generer et tal inden for intervallet
-                    if (!columnNumbers.Contains(number)) // Undgå duplikerede numre
+                    if (board[row, col] != -1) // Hvis et tal ikke er markeret, er rækken ikke fyldt
                     {
-                        columnNumbers.Add(number); // Tilføj nummeret til listen
+                        is_row_marked = false; // Rækken er ikke fyldt
+                        break; // Gå til næste række
                     }
                 }
 
-                // Tildel værdierne fra listen til den rigtige kolonne i arrayet
-                for (int j = 0; j < 3; j++)
+                if (is_row_marked)
                 {
-                    numbers[j, i] = columnNumbers[j];
+                    marked_row_count++; // Tæl en fyldt række
                 }
             }
 
-            // Sorter kolonnerne i stigende rækkefølge
-            for (int i = 0; i < 9; i++)
-            {
-                int[] column = { numbers[0, i], numbers[1, i], numbers[2, i] }; // Hent kolonne
-                Array.Sort(column); // Sorter i stigende rækkefølge
-
-                // Gem den sorterede kolonne tilbage i arrayet
-                for (int j = 0; j < 3; j++)
-                {
-                    numbers[j, i] = column[j]; // Tildel de sorterede tal
-                }
-            }
-
-            // Erstat 4 tilfældige tal med "Blank" (-1)
-            RemoveNumbers(numbers);
-
-            return numbers; // Returner den genererede 2D-array
+            return marked_row_count; // Returner antallet af fyldte rækker
         }
 
-        static void RemoveNumbers(int[,] numbers)
+        static int[,] Generate_board(string name)
         {
-            Random rand = new Random();
-            int[] columnCount = new int[9]; // Array til at tælle, hvor mange tal der er tilbage i hver kolonne
+            int[] række_1;
+            int[] række_2;
+            int[] række_3;
 
-            // Sæt alle tællere til 3, fordi vi starter med 3 tal pr. kolonne
-            for (int i = 0; i < 9; i++)
+            if (name == "LukasB")
             {
-                columnCount[i] = 3;
+                række_1 = new int[] { 40, 50, 62, 70, 80 };
+                række_2 = new int[] { 7, 22, 36, 44, 52 };
+                række_3 = new int[] { 8, 19, 38, 54, 66 };
+            }
+            else if (name == "Mikkel")
+            {
+                række_1 = new int[] { 12, 44, 60, 70, 81 };
+                række_2 = new int[] { 4, 37, 45, 55, 72 };
+                række_3 = new int[] { 6, 28, 48, 58, 65 };
+            }
+            else if (name == "Jonas")
+            {
+                række_1 = new int[] { 2, 41, 51, 70, 87 };
+                række_2 = new int[] { 6, 26, 31, 52, 88 };
+                række_3 = new int[] { 8, 17, 29, 65, 74 };
+            }
+            else if (name == "Mathias")
+            {
+                række_1 = new int[] { 2, 42, 62, 71, 83 };
+                række_2 = new int[] { 6, 23, 35, 68, 88 };
+                række_3 = new int[] { 7, 18, 24, 55, 69 };
+            }
+            else if (name == "Bente")
+            {
+                række_1 = new int[] { 1, 11, 23, 30, 81 };
+                række_2 = new int[] { 14, 26, 31, 74, 85 };
+                række_3 = new int[] { 4, 34, 46, 59, 68 };
+            }
+            else if (name == "Jacob")
+            {
+                række_1 = new int[] { 2, 21, 30, 74, 82 };
+                række_2 = new int[] { 22, 32, 43, 56, 67 };
+                række_3 = new int[] { 14, 28, 38, 77, 89 };
+            }
+            else if (name == "Bob")
+            {
+                række_1 = new int[] { 6, 10, 24, 32, 40 };
+                række_2 = new int[] { 7, 35, 41, 56, 73 };
+                række_3 = new int[] { 29, 39, 48, 68, 89 };
+            }
+            else if (name == "Peter")
+            {
+                række_1 = new int[] { 13, 32, 41, 51, 85 };
+                række_2 = new int[] { 15, 22, 42, 74, 86 };
+                række_3 = new int[] { 9, 28, 37, 57, 68 };
+            }
+            else if (name == "Ole")
+            {
+                række_1 = new int[] { 1, 15, 22, 42, 80 };
+                række_2 = new int[] { 6, 33, 43, 72, 84 };
+                række_3 = new int[] { 19, 28, 47, 58, 68 };
+            }
+            else if (name == "Margrethe")
+            {
+                række_1 = new int[] { 1, 22, 33, 40, 84 };
+                række_2 = new int[] { 16, 34, 52, 67, 87 };
+                række_3 = new int[] { 6, 28, 59, 68, 79 };
+            }
+            else if (name == "Ella")
+            {
+                række_1 = new int[] { 14, 21, 33, 40, 81 };
+                række_2 = new int[] { 8, 16, 46, 56, 63 };
+                række_3 = new int[] { 9, 18, 39, 58, 77 };
+            }
+            else if (name == "Freja")
+            {
+                række_1 = new int[] { 4, 23, 34, 41, 52 };
+                række_2 = new int[] { 5, 12, 36, 55, 74 };
+                række_3 = new int[] { 38, 48, 58, 66, 89 };
+            }
+            else if (name == "William")
+            {
+                række_1 = new int[] { 13, 33, 40, 72, 82 };
+                række_2 = new int[] { 2, 18, 35, 53, 83 };
+                række_3 = new int[] { 5, 29, 66, 79, 89 };
+            }
+            else if (name == "Karl")
+            {
+                række_1 = new int[] { 11, 31, 46, 54, 82 };
+                række_2 = new int[] { 5, 47, 55, 63, 84 };
+                række_3 = new int[] { 8, 29, 48, 77, 89 };
+            }
+            else if (name == "Frida")
+            {
+                række_1 = new int[] { 11, 46, 51, 63, 84 };
+                række_2 = new int[] { 6, 24, 47, 55, 67 };
+                række_3 = new int[] { 16, 28, 35, 69, 76 };
+            }
+            else if (name == "Luna")
+            {
+                række_1 = new int[] { 2, 23, 54, 64, 71 };
+                række_2 = new int[] { 5, 18, 41, 56, 67 };
+                række_3 = new int[] { 9, 39, 59, 69, 90 };
+            }
+            else if (name == "Emil")
+            {
+                række_1 = new int[] { 1, 34, 42, 65, 80 };
+                række_2 = new int[] { 15, 26, 54, 66, 81 };
+                række_3 = new int[] { 9, 17, 45, 68, 75 };
+            }
+            else if (name == "Oscar")
+            {
+                række_1 = new int[] { 2, 10, 40, 50, 84 };
+                række_2 = new int[] { 3, 13, 24, 65, 85 };
+                række_3 = new int[] { 5, 39, 47, 77, 90 };
+            }
+            else if (name == "Ida")
+            {
+                række_1 = new int[] { 23, 30, 45, 51, 71 };
+                række_2 = new int[] { 5, 13, 35, 46, 74 };
+                række_3 = new int[] { 7, 38, 68, 77, 90 };
+            }
+            else // Oliver
+            {
+                række_1 = new int[] { 15, 50, 63, 73, 80 };
+                række_2 = new int[] { 8, 25, 32, 47, 65 };
+                række_3 = new int[] { 36, 49, 54, 77, 84 };
             }
 
-            // Gå igennem hver række for at erstatte 4 tilfældige tal med "Blank"
-            for (int row = 0; row < 3; row++)
+            // Opretter en todimensional array og fylder den med værdierne fra rækkerne
+            int[,] board = new int[3, 5];
+
+            for (int col = 0; col < 5; col++)
             {
-                // Opret en liste med alle kolonneindekser
-                List<int> availableColumns = new List<int>(Enumerable.Range(0, 9));
-
-                int removedCount = 0;
-
-                while (removedCount < 4)
-                {
-                    int randomIndex = rand.Next(availableColumns.Count); // Vælg en tilfældig kolonne
-
-                    int col = availableColumns[randomIndex];
-
-                    // Fjern kun et tal fra kolonnen, hvis der er flere end ét tal tilbage
-                    if (columnCount[col] > 1)
-                    {
-                        numbers[row, col] = -1; // Erstat tallet med -1 (som repræsenterer "Blank")
-                        columnCount[col]--; // Reducer antallet af tal i den valgte kolonne
-                        removedCount++;
-                    }
-
-                    availableColumns.RemoveAt(randomIndex); // Fjern kolonnen fra listen efter fjernelse
-                }
+                board[0, col] = række_1[col];
+                board[1, col] = række_2[col];
+                board[2, col] = række_3[col];
             }
+
+            return board;
         }
 
-        static void PrintBoard(int[,] board)
+        static void Print_board(int[,] board)
         {
-            for (int i = 0; i < 3; i++) // For hver række
+            for (int row = 0; row < board.GetLength(0); row++)
             {
-                for (int j = 0; j < 9; j++) // For hver kolonne
+                for (int col = 0; col < board.GetLength(1); col++)
                 {
-                    if (board[i, j] == -1)
+                    if (board[row, col] == -1)
                     {
-                        Console.Write("-\t"); // Udskriv "-" for "Blank"
+                        Console.Write("X  "); // Udskriver X i stedet for -1
                     }
-                    else if (board[i, j] == -2)
+                    else if (board[row, col] >= 1 && board[row, col] <= 9)
                     {
-                        Console.Write("X\t"); // Udskriv "-" for "Blank"
+                        Console.Write("0" + board[row, col] + " ");
                     }
                     else
                     {
-                        Console.Write(board[i, j].ToString() + "\t"); // Udskriv tallet
+                        Console.Write(board[row, col] + " ");
                     }
                 }
                 Console.WriteLine();
             }
         }
 
-        static void MarkDrawnNumber(int[,] board, int drawn_number)
+        static void Mark_drawn_number(int[,] board, int number)
         {
-            for (int i = 0; i < 3; i++)
+            for (int row = 0; row < board.GetLength(0); row++)
             {
-                for (int j = 0; j < 9; j++)
+                for (int col = 0; col < board.GetLength(1); col++)
                 {
-                    if (board[i, j] == drawn_number)
+                    if (board[row, col] == number)
                     {
-                        board[i, j] = -2; // Erstat tallet med -1 (som repræsenterer "X")
+                        board[row, col] = -1;  // -1 for hver tal som er trukket
                     }
                 }
             }

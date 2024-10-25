@@ -1,0 +1,15 @@
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\bin\Debug\net8.0\BankoCheate_2.exe
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\bin\Debug\net8.0\BankoCheate_2.deps.json
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\bin\Debug\net8.0\BankoCheate_2.runtimeconfig.json
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\bin\Debug\net8.0\BankoCheate_2.dll
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\bin\Debug\net8.0\BankoCheate_2.pdb
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\BankoCheate_2.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\BankoCheate_2.AssemblyInfoInputs.cache
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\BankoCheate_2.AssemblyInfo.cs
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\BankoCheate_2.csproj.CoreCompileInputs.cache
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\BankoCheate_2.sourcelink.json
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\BankoCheate_2.dll
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\refint\BankoCheate_2.dll
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\BankoCheate_2.pdb
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\BankoCheate_2.genruntimeconfig.cache
+C:\Users\total\Downloads\Mercantec\H1\Banko\banko-marktn4070\BankoCheate_2\obj\Debug\net8.0\ref\BankoCheate_2.dll
